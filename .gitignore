@@ -1,0 +1,42 @@
+# ---- ความลับ: ห้ามขึ้น GitHub ----
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# ---- Python ----
+venv/
+.venv/
+env/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ipynb_checkpoints/
+
+# ---- Node / React ----
+node_modules/
+dist/
+build/
+.vite/
+
+# ---- Dataset ภาพ (ไฟล์ใหญ่ เก็บแยกนอก Git) ----
+gallery/
+query/
+dataset/
+data/raw/
+*.zip
+
+# ---- โมเดลและแคช ----
+*.pt
+*.pth
+*.safetensors
+.cache/
+
+# ---- อื่น ๆ ----
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+uploads/

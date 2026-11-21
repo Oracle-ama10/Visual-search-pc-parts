@@ -1,0 +1,14 @@
+fastapi
+uvicorn[standard]
+psycopg[binary]
+pgvector
+numpy
+pillow
+python-multipart
+bcrypt
+PyJWT
+open_clip_torch
+torch
+torchvision
+pytest
+httpx

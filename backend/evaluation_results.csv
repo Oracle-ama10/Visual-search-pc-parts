@@ -1,0 +1,12 @@
+﻿query_file,truth,rank,top1_pred,top1_score
+CPU cooler_01.jpg,CPU cooler_01,1,CPU cooler_01,0.8953
+GPU_01.jpg,GPU_01,3,GPU_02,0.958
+GPU_02.jpg,GPU_02,2,GPU_01,0.8874
+GPU_03.jpg,GPU_03,ไม่ติด Top-5,GPU_02,0.8681
+GPU_05.jpg,GPU_05,1,GPU_05,0.8901
+GPU_06.jpg,GPU_06,ไม่ติด Top-5,GPU_02,0.8594
+HDD_02.jpg,HDD_02,1,HDD_02,0.9165
+HDD_03.jpg,HDD_03,1,HDD_03,0.9112
+HDD_04.jpg,HDD_04,3,GPU_04,0.9087
+RAM_08.jpg,RAM_08,1,RAM_08,0.9402
+SSD_02.jpg,SSD_02,1,SSD_02,0.9071

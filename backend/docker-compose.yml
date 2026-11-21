@@ -1,0 +1,16 @@
+# รันฐานข้อมูล: docker compose up -d
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: visualsearch-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: visualsearch
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+volumes:
+  pgdata:

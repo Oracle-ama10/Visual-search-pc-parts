@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Visual Search Demo — ระบบค้นหาอะไหล่คอมมือสองด้วยรูปภาพ</title>
+<style>
+  :root{
+    --bg:#f4f6fb; --card:#ffffff; --ink:#1b2430; --muted:#5d6b7e; --line:#dfe5ee;
+    --brand:#1f3a8a; --brand2:#3157d5; --ok:#117a3d; --okbg:#dff5e6; --bad:#b42318; --badbg:#fde3e1;
+    --warn:#8a5a00; --warnbg:#fff2d6;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Tahoma,"Segoe UI",system-ui,sans-serif}
+  header{background:var(--brand);color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  header h1{font-size:20px;margin:0;font-weight:700}
+  header .sub{opacity:.85;font-size:14px}
+  header .dot{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:14px}
+  .dot i{width:12px;height:12px;border-radius:50%;background:#9aa7bd;display:inline-block}
+  .dot i.on{background:#3ddc84}.dot i.off{background:#ff6b6b}
+  main{max-width:1280px;margin:0 auto;padding:20px;display:grid;gap:18px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px}
+  .card h2{margin:0 0 12px;font-size:18px;color:var(--brand)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .grid3{display:grid;grid-template-columns:1.1fr 1fr;gap:18px}
+  @media(max-width:900px){.grid2,.grid3{grid-template-columns:1fr}}
+  label{font-size:14px;color:var(--muted);display:block;margin-bottom:4px}
+  input[type=text],input[type=password],input[type=number]{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:8px;font:inherit}
+  .row{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
+  .row > div{flex:1;min-width:140px}
+  button{font:inherit;cursor:pointer;border:0;border-radius:8px;padding:10px 16px;background:var(--brand2);color:#fff;font-weight:600}
+  button.ghost{background:#eef2fb;color:var(--brand)}
+  button.sm{padding:6px 10px;font-size:14px}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  .drop{border:2px dashed #9db0d6;border-radius:12px;padding:18px;text-align:center;color:var(--muted);background:#f8faff;cursor:pointer;min-height:150px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
+  .drop.over{background:#e9f0ff;border-color:var(--brand2)}
+  .drop img{max-height:170px;max-width:100%;border-radius:8px}
+  .banner{padding:10px 14px;border-radius:8px;font-size:15px;display:none}
+  .banner.show{display:block}
+  .banner.err{background:var(--badbg);color:var(--bad)}
+  .banner.info{background:var(--warnbg);color:var(--warn)}
+  .thr-big{font-size:34px;font-weight:700;color:var(--brand)}
+  input[type=range]{width:100%}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+  .res-col{border:1px solid var(--line);border-radius:12px;padding:14px;background:#fcfdff;min-height:120px}
+  .res-col h3{margin:0 0 8px;font-size:16px}
+  .res-col .empty{color:var(--muted);font-size:15px}
+  .badge{display:inline-block;padding:3px 12px;border-radius:999px;font-weight:700;font-size:14px}
+  .badge.ok{background:var(--okbg);color:var(--ok)}.badge.bad{background:var(--badbg);color:var(--bad)}
+  .meta{color:var(--muted);font-size:14px;margin:6px 0 10px}
+  .hit{display:grid;grid-template-columns:64px 1fr;gap:12px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
+  .hit:first-of-type{border-top:0}
+  .thumb{width:64px;height:64px;border-radius:8px;background:#e6ebf4;object-fit:cover;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--muted);overflow:hidden}
+  .hit .nm{font-weight:700}.hit .cat{color:var(--muted);font-size:13px}
+  .bar{position:relative;height:12px;background:#e6ebf4;border-radius:6px;margin-top:4px}
+  .bar b{position:absolute;left:0;top:0;bottom:0;border-radius:6px;background:var(--brand2)}
+  .bar b.below{background:#b8c2d6}
+  .bar u{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--bad);text-decoration:none}
+  .legend{font-size:12px;color:var(--muted);margin-top:6px}
+  .fb{background:var(--badbg);color:var(--bad);padding:10px 12px;border-radius:8px;margin-top:6px}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+  th{color:var(--muted);font-weight:600;background:#f7f9fd}
+  .logthumb{width:38px;height:38px;border-radius:6px;object-fit:cover;background:#e6ebf4}
+  .stats{display:flex;gap:22px;margin-bottom:8px;flex-wrap:wrap}
+  .stats div{font-size:14px;color:var(--muted)}.stats b{display:block;font-size:24px;color:var(--ink)}
+  .note{font-size:13px;color:var(--muted)}
+</style>
+</head>
+<body>
+<header>
+  <h1>Visual Search Demo — ระบบค้นหาอะไหล่คอมมือสองด้วยรูปภาพ</h1>
+  <span class="sub">ต้นแบบสำหรับแสดงการทำงานของ Backend (FastAPI + PostgreSQL/pgvector + OpenCLIP)</span>
+  <span class="dot"><i id="dot"></i><span id="dotText">ยังไม่ได้เชื่อมต่อ</span></span>
+</header>
+
+<main>
+  <div id="banner" class="banner"></div>
+
+  <section class="card">
+    <h2>1) เชื่อมต่อระบบ</h2>
+    <div class="row">
+      <div style="flex:1.4"><label for="base">ที่อยู่ API</label><input type="text" id="base" value="http://127.0.0.1:8000"></div>
+      <div><label for="email">อีเมลผู้ดูแลระบบ</label><input type="text" id="email" value="admin@example.com"></div>
+      <div><label for="pw">รหัสผ่าน</label><input type="password" id="pw" placeholder="พิมพ์ครั้งเดียว"></div>
+      <div style="flex:0 0 auto"><button id="btnLogin">เข้าสู่ระบบ</button></div>
+    </div>
+    <div class="note" id="loginState" style="margin-top:8px">การค้นหาไม่ต้องเข้าสู่ระบบ แต่การปรับ Threshold และดู Log เป็นฟังก์ชันของผู้ดูแลระบบ (JWT)</div>
+  </section>
+
+  <div class="grid3">
+    <section class="card">
+      <h2>2) ค้นหาด้วยภาพ</h2>
+      <div class="drop" id="drop">
+        <div id="dropMsg">ลากรูปอะไหล่มาวางที่นี่ หรือคลิกเพื่อเลือกไฟล์</div>
+        <img id="preview" alt="" style="display:none">
+        <div id="fname" class="note"></div>
+      </div>
+      <input type="file" id="file" accept="image/*" style="display:none">
+      <div class="row" style="margin-top:12px">
+        <div style="flex:0 0 auto"><button id="btnSearch" disabled>ค้นหา</button></div>
+        <div class="note" style="flex:1">ผลลัพธ์จะแสดงด้านล่าง ถ้าค้นซ้ำหรือปรับ Threshold ผลก่อนหน้าจะเลื่อนไปอยู่ช่อง "ก่อน"</div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>3) Similarity Threshold (Hard Block)</h2>
+      <div class="row" style="align-items:center">
+        <div style="flex:0 0 auto"><label>ค่าที่ใช้อยู่ในระบบ</label><div class="thr-big" id="thrNow">—</div></div>
+        <div class="note" style="flex:1">ถ้าคะแนนความคล้ายอันดับ 1 ต่ำกว่าค่านี้ ระบบจะตัดผลลัพธ์ทั้งหมดและแจ้งว่าไม่พบรายการที่ตรงกัน</div>
+      </div>
+      <label for="thrRange" style="margin-top:10px">ตั้งค่าใหม่</label>
+      <input type="range" id="thrRange" min="0.80" max="0.98" step="0.001" value="0.89">
+      <div class="row">
+        <div style="flex:0 0 130px"><input type="number" id="thrNum" min="0" max="1" step="0.0001" value="0.8900"></div>
+        <div style="flex:0 0 auto"><button id="btnApply" disabled>ตั้งค่า และค้นหาซ้ำ</button></div>
+      </div>
+      <div class="chips">
+        <button class="ghost sm" data-thr="0.9241">0.9241 (ค่าจาก SE-01)</button>
+        <button class="ghost sm" data-thr="0.89">0.89 (ปรับชั่วคราวจากการทดสอบ)</button>
+      </div>
+      <hr style="border:0;border-top:1px solid var(--line);margin:14px 0">
+      <label>เปรียบเทียบก่อน/หลังอัตโนมัติ (ภาพเดิม ค้นหา 2 ครั้ง)</label>
+      <div class="row">
+        <div><label for="thrA">ก่อน (A)</label><input type="number" id="thrA" step="0.0001" value="0.9241"></div>
+        <div><label for="thrB">หลัง (B)</label><input type="number" id="thrB" step="0.0001" value="0.8900"></div>
+        <div style="flex:0 0 auto"><button id="btnCompare" disabled>รันเปรียบเทียบ</button></div>
+      </div>
+    </section>
+  </div>
+
+  <section class="card">
+    <h2>4) ผลการค้นหา: ก่อน / หลัง</h2>
+    <div class="grid2">
+      <div class="res-col"><h3>ก่อน</h3><div id="resBefore"><div class="empty">ยังไม่มีผลก่อนหน้า</div></div></div>
+      <div class="res-col"><h3>หลัง (ล่าสุด)</h3><div id="resAfter"><div class="empty">เลือกรูปแล้วกด "ค้นหา"</div></div></div>
+    </div>
+    <div class="legend">แถบสีฟ้า = คะแนนความคล้าย (Cosine Similarity ช่วง 0.70–1.00) เส้นแดง = ค่า Threshold ที่ใช้ตอนค้นหานั้น</div>
+  </section>
+
+  <section class="card">
+    <h2>5) Search Logs (ผู้ดูแลระบบ — UC-07)</h2>
+    <div class="stats"><div>ค้นหาทั้งหมด<b id="logTotal">—</b></div><div>ถูกบล็อก<b id="logBlocked">—</b></div></div>
+    <div class="row" style="margin-bottom:8px">
+      <div style="flex:0 0 auto"><button class="ghost" id="btnLogs" disabled>รีเฟรช Log</button></div>
+      <div style="flex:0 0 auto;align-self:center"><label style="display:inline;margin:0"><input type="checkbox" id="onlyBlocked"> เฉพาะที่ถูกบล็อก</label></div>
+      <div class="note" style="align-self:center">ระบบบันทึกทุกคำขอค้นหาอัตโนมัติ (FR-11) ภาพเดียวกันที่ค้นซ้ำจะปรากฏหลายแถว</div>
+    </div>
+    <div style="overflow-x:auto">
+      <table>
+        <thead><tr><th>เวลา</th><th>ภาพ</th><th>คะแนนอันดับ 1</th><th>สถานะ</th><th>ผลลัพธ์</th><th>เวลา (ms)</th></tr></thead>
+        <tbody id="logBody"><tr><td colspan="6" class="note">เข้าสู่ระบบเพื่อดู Log</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const S = { token:null, file:null, last:null, prev:null, lastFileKey:null, busy:false };
+
+  function base(){ return $('base').value.trim().replace(/\/+$/,''); }
+  function api(p){ return base() + p; }
+  function fmt(n,d){ return (typeof n === 'number') ? n.toFixed(d===undefined?4:d) : '—'; }
+  function authH(){ return S.token ? { Authorization: 'Bearer ' + S.token } : {}; }
+  function banner(msg,kind){ const b=$('banner'); if(!msg){b.className='banner';b.textContent='';return;} b.className='banner show '+(kind||'err'); b.textContent=msg; }
+  function setDot(on,text){ $('dot').className = on===null?'':(on?'on':'off'); $('dotText').textContent = text; }
+  function fileKey(f){ return f ? (f.name+'|'+f.size+'|'+f.lastModified) : null; }
+  function refreshButtons(){
+    const hasFile=!!S.file, admin=!!S.token;
+    $('btnSearch').disabled = !hasFile || S.busy;
+    $('btnApply').disabled = !admin || S.busy;
+    $('btnCompare').disabled = !admin || !hasFile || S.busy;
+    $('btnLogs').disabled = !admin || S.busy;
+  }
+  function busy(b){ S.busy=b; refreshButtons(); }
+
+  async function jfetch(path, opts){
+    let r;
+    try { r = await fetch(api(path), opts); }
+    catch(e){ setDot(false,'เชื่อมต่อ API ไม่ได้'); throw new Error('เชื่อมต่อ API ไม่ได้ กรุณาตรวจว่าเปิด API แล้ว (uvicorn main:app --reload) และที่อยู่ถูกต้อง'); }
+    let data=null; try{ data = await r.json(); }catch(e){}
+    if(r.status===401){ S.token=null; $('loginState').textContent='เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่'; refreshButtons(); throw new Error((data&&data.detail)||'ต้องเข้าสู่ระบบ'); }
+    if(!r.ok){ throw new Error((data && (typeof data.detail==='string'?data.detail:JSON.stringify(data.detail))) || ('ผิดพลาด HTTP '+r.status)); }
+    return data;
+  }
+
+  async function health(){
+    try{ await fetch(api('/health')); setDot(true,'เชื่อมต่อ API แล้ว'); }
+    catch(e){ setDot(false,'เชื่อมต่อ API ไม่ได้'); }
+  }
+
+  async function login(){
+    banner('');
+    try{
+      busy(true);
+      const d = await jfetch('/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:$('email').value.trim(),password:$('pw').value})});
+      S.token = d.access_token; $('pw').value='';
+      $('loginState').textContent='เข้าสู่ระบบแล้ว: '+$('email').value.trim();
+      setDot(true,'เชื่อมต่อ API แล้ว (ผู้ดูแลระบบ)');
+      await loadThr(); await loadLogs();
+    }catch(e){ banner(e.message); }
+    finally{ busy(false); }
+  }
+
+  async function loadThr(){
+    const d = await jfetch('/api/admin/threshold',{headers:authH()});
+    $('thrNow').textContent = fmt(d.similarity_threshold);
+    $('thrNum').value = fmt(d.similarity_threshold); $('thrRange').value = d.similarity_threshold;
+    return d.similarity_threshold;
+  }
+  async function setThr(v){
+    const d = await jfetch('/api/admin/threshold',{method:'PUT',headers:Object.assign({'Content-Type':'application/json'},authH()),body:JSON.stringify({value:Number(v)})});
+    $('thrNow').textContent = fmt(d.similarity_threshold);
+    return d.similarity_threshold;
+  }
+
+  async function searchOnce(){
+    const fd = new FormData(); fd.append('file', S.file);
+    return jfetch('/api/search',{method:'POST',body:fd});
+  }
+
+  function pct(score){ return Math.max(0,Math.min(100,(score-0.70)/0.30*100)); }
+  function imgUrl(p){ return base()+'/uploads/'+String(p||'').replace(/\\/g,'/'); }
+
+  function renderResult(el, data){
+    if(!data){ el.innerHTML='<div class="empty">ยังไม่มีผล</div>'; return; }
+    const thr = data.threshold;
+    const blocked = !!data.is_hard_blocked;
+    let h = '<div><span class="badge '+(blocked?'bad':'ok')+'">'+(blocked?'ถูกบล็อก (Hard Block)':'ผ่านเกณฑ์')+'</span></div>';
+    h += '<div class="meta">คะแนนอันดับ 1 = <b>'+fmt(data.top1_score)+'</b> '+(blocked?'&lt;':'≥')+' Threshold <b>'+fmt(thr)+'</b> · เวลาตอบสนอง '+(data.latency_ms!=null?data.latency_ms+' ms':'—')+'</div>';
+    if(blocked){
+      h += '<div class="fb">'+esc(data.fallback_message||'ไม่พบสินค้าที่ใกล้เคียงเพียงพอ')+'</div>';
+    } else {
+      (data.results||[]).forEach(function(r,i){
+        const p = pct(r.score), t = pct(thr);
+        h += '<div class="hit"><div class="thumb"><img class="thumb" alt="" src="'+esc(imgUrl(r.image_path))+'" onerror="this.replaceWith(document.createTextNode(\'ไม่มีภาพ\'))"></div>'+
+             '<div><div><span class="nm">'+(i+1)+'. '+esc(r.name)+'</span> <span class="cat">'+esc(r.category||'')+'</span> · <b>'+fmt(r.score)+'</b></div>'+
+             '<div class="bar"><b class="'+(r.score<thr?'below':'')+'" style="width:'+p+'%"></b><u style="left:'+t+'%"></u></div></div></div>';
+      });
+    }
+    el.innerHTML = h;
+  }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+
+  function pushResult(data){
+    if(S.lastFileKey===fileKey(S.file) && S.last){ S.prev = S.last; } else { S.prev = null; }
+    S.last = data; S.lastFileKey = fileKey(S.file);
+    renderResult($('resBefore'), S.prev || null);
+    if(!S.prev) $('resBefore').innerHTML='<div class="empty">ยังไม่มีผลก่อนหน้า (ปรับ Threshold หรือค้นซ้ำเพื่อดูการเปลี่ยนแปลง)</div>';
+    renderResult($('resAfter'), S.last);
+  }
+
+  async function doSearch(){
+    banner('');
+    if(!S.file) return;
+    try{
+      busy(true); $('resAfter').innerHTML='<div class="empty">กำลังค้นหา… (ครั้งแรกอาจช้า เพราะโหลดโมเดล)</div>';
+      const d = await searchOnce(); pushResult(d);
+      if(S.token) await loadLogs();
+    }catch(e){ banner(e.message); }
+    finally{ busy(false); }
+  }
+
+  async function applyThr(){
+    banner('');
+    const v = Number($('thrNum').value);
+    if(!(v>=0 && v<=1)){ banner('ค่า Threshold ต้องอยู่ระหว่าง 0 ถึง 1'); return; }
+    try{
+      busy(true);
+      await setThr(v);
+      if(S.file){ const d = await searchOnce(); pushResult(d); }
+      if(S.token) await loadLogs();
+    }catch(e){ banner(e.message); }
+    finally{ busy(false); }
+  }
+
+  async function compare(){
+    banner('');
+    const a = Number($('thrA').value), b = Number($('thrB').value);
+    if(!(a>=0&&a<=1&&b>=0&&b<=1)){ banner('ค่า A และ B ต้องอยู่ระหว่าง 0 ถึง 1'); return; }
+    try{
+      busy(true);
+      $('resBefore').innerHTML='<div class="empty">กำลังค้นหาด้วยค่า A…</div>'; $('resAfter').innerHTML='<div class="empty">รอผลค่า B…</div>';
+      await setThr(a); const d1 = await searchOnce();
+      renderResult($('resBefore'), d1);
+      await setThr(b); const d2 = await searchOnce();
+      S.prev = d1; S.last = d2; S.lastFileKey = fileKey(S.file);
+      renderResult($('resAfter'), d2);
+      await loadThr();
+      if(S.token) await loadLogs();
+    }catch(e){ banner(e.message); }
+    finally{ busy(false); }
+  }
+
+  async function loadLogs(){
+    try{
+      const q = '?limit=15'+($('onlyBlocked').checked?'&blocked_only=true':'');
+      const d = await jfetch('/api/admin/logs'+q,{headers:authH()});
+      $('logTotal').textContent = d.total; $('logBlocked').textContent = d.hard_blocked;
+      const rows = (d.items||[]).map(function(it){
+        const t = new Date(it.searched_at); const ts = isNaN(t)?esc(it.searched_at):t.toLocaleString('th-TH',{hour12:false});
+        return '<tr><td>'+ts+'</td><td><img class="logthumb" alt="" src="'+esc(imgUrl(it.query_image))+'" onerror="this.style.visibility=\'hidden\'"></td>'+
+               '<td>'+fmt(it.top1_score)+'</td><td><span class="badge '+(it.is_hard_blocked?'bad':'ok')+'">'+(it.is_hard_blocked?'ถูกบล็อก':'ผ่าน')+'</span></td>'+
+               '<td>'+it.result_count+'</td><td>'+it.latency_ms+'</td></tr>';
+      });
+      $('logBody').innerHTML = rows.length ? rows.join('') : '<tr><td colspan="6" class="note">ยังไม่มีบันทึก</td></tr>';
+    }catch(e){ banner(e.message); }
+  }
+
+  // ---- file handling
+  function setFile(f){
+    if(!f) return;
+    S.file = f; $('fname').textContent = f.name;
+    const rd = new FileReader();
+    rd.onload = function(){ $('preview').src = rd.result; $('preview').style.display='block'; $('dropMsg').style.display='none'; };
+    rd.readAsDataURL(f);
+    refreshButtons();
+  }
+  $('drop').addEventListener('click', function(){ $('file').click(); });
+  $('file').addEventListener('change', function(e){ setFile(e.target.files[0]); });
+  ['dragenter','dragover'].forEach(function(ev){ $('drop').addEventListener(ev,function(e){e.preventDefault();$('drop').classList.add('over');}); });
+  ['dragleave','drop'].forEach(function(ev){ $('drop').addEventListener(ev,function(e){e.preventDefault();$('drop').classList.remove('over');}); });
+  $('drop').addEventListener('drop', function(e){ setFile(e.dataTransfer.files[0]); });
+
+  // ---- threshold controls
+  $('thrRange').addEventListener('input', function(){ $('thrNum').value = Number($('thrRange').value).toFixed(4); });
+  $('thrNum').addEventListener('input', function(){ const v=Number($('thrNum').value); if(v>=0.80&&v<=0.98) $('thrRange').value=v; });
+  document.querySelectorAll('[data-thr]').forEach(function(b){ b.addEventListener('click', function(){ const v=b.getAttribute('data-thr'); $('thrNum').value=Number(v).toFixed(4); $('thrRange').value=v; }); });
+
+  $('btnLogin').addEventListener('click', login);
+  $('pw').addEventListener('keydown', function(e){ if(e.key==='Enter') login(); });
+  $('btnSearch').addEventListener('click', doSearch);
+  $('btnApply').addEventListener('click', applyThr);
+  $('btnCompare').addEventListener('click', compare);
+  $('btnLogs').addEventListener('click', loadLogs);
+  $('onlyBlocked').addEventListener('change', function(){ if(S.token) loadLogs(); });
+  $('base').addEventListener('change', health);
+
+  refreshButtons(); health();
+})();
+</script>
+</body>
+</html>
